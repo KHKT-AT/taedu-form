@@ -1,21 +1,26 @@
 import express from "express";
 import bodyParser from "body-parser";
 import nodemailer from "nodemailer";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Cho phép Express phục vụ file tĩnh trong thư mục "public"
-app.use(express.static("public"));
+// Cho phép Express truy cập file tĩnh trong thư mục "public"
+app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Route mặc định — chuyển người dùng đến form.html
+// Khi người dùng truy cập "/", trả về form.html
 app.get("/", (req, res) => {
-  res.sendFile("form.html", { root: "public" });
+  res.sendFile(path.join(__dirname, "public", "form.html"));
 });
 
-// Xử lý gửi email (nếu bạn có form gửi email)
+// Xử lý gửi mail
 app.post("/send", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -41,5 +46,4 @@ app.post("/send", async (req, res) => {
   }
 });
 
-// Khởi động server (chỉ dùng khi chạy cục bộ)
-app.listen(PORT, () => console.log(`Server đang chạy trên cổng ${PORT}`));
+app.listen(PORT, () => console.log(`Server đang chạy ở cổng ${PORT}`));
