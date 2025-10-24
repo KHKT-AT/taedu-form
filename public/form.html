@@ -3,38 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Form đăng ký khóa học</title>
+  <title>Đăng ký học TA Edu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #555;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #message {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Form đăng ký khóa học</h2>
-  <form id="registerForm">
-    <label>Họ tên:</label><br>
-    <input type="text" name="name" required><br><br>
-    
-    <label>Email:</label><br>
-    <input type="email" name="email" required><br><br>
-    
-    <label>Khóa học:</label><br>
-    <input type="text" name="course" required><br><br>
-    
-    <button type="submit">Đăng ký</button>
-  </form>
+  <div class="container">
+    <h2>Đăng ký học viên mới</h2>
+    <form id="registerForm">
+      <label for="name">Họ và tên:</label>
+      <input type="text" id="name" name="name" required />
 
-  <p id="status"></p>
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required />
+
+      <label for="message">Nội dung đăng ký:</label>
+      <textarea id="content" name="message" rows="4" required></textarea>
+
+      <button type="submit">Gửi đăng ký</button>
+    </form>
+    <p id="message"></p>
+  </div>
 
   <script>
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    const form = document.getElementById("registerForm");
+    const messageEl = document.getElementById("message");
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const formData = Object.fromEntries(new FormData(e.target));
-      const res = await fetch("/send-mail", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const result = await res.json();
-      document.getElementById("status").textContent = result.success
-        ? "✅ Email xác nhận đã được gửi!"
-        : "❌ Gửi email thất bại!";
+
+      const formData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        message: document.getElementById("content").value,
+      };
+
+      messageEl.textContent = "⏳ Đang gửi đăng ký...";
+
+      try {
+        const res = await fetch("/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        if (res.ok) {
+          messageEl.textContent = "✅ Đăng ký thành công! Email xác nhận đã được gửi.";
+          messageEl.style.color = "green";
+          form.reset();
+        } else {
+          messageEl.textContent = "❌ Có lỗi khi gửi, vui lòng thử lại.";
+          messageEl.style.color = "red";
+        }
+      } catch (error) {
+        console.error(error);
+        messageEl.textContent = "❌ Lỗi kết nối đến server.";
+        messageEl.style.color = "red";
+      }
     });
   </script>
 </body>
