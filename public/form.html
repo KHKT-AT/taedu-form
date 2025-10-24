@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form đăng ký khóa học</title>
+</head>
+<body>
+  <h2>Form đăng ký khóa học</h2>
+  <form id="registerForm">
+    <label>Họ tên:</label><br>
+    <input type="text" name="name" required><br><br>
+    
+    <label>Email:</label><br>
+    <input type="email" name="email" required><br><br>
+    
+    <label>Khóa học:</label><br>
+    <input type="text" name="course" required><br><br>
+    
+    <button type="submit">Đăng ký</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(e.target));
+      const res = await fetch("/send-mail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const result = await res.json();
+      document.getElementById("status").textContent = result.success
+        ? "✅ Email xác nhận đã được gửi!"
+        : "❌ Gửi email thất bại!";
+    });
+  </script>
+</body>
+</html>
