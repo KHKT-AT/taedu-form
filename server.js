@@ -5,39 +5,41 @@ import nodemailer from "nodemailer";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(bodyParser.json());
+// Cho phép Express phục vụ file tĩnh trong thư mục "public"
 app.use(express.static("public"));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-// Gmail transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER, // sẽ đặt trên Vercel
-    pass: process.env.GMAIL_PASS, // App password Gmail
-  },
+// Route mặc định — chuyển người dùng đến form.html
+app.get("/", (req, res) => {
+  res.sendFile("form.html", { root: "public" });
 });
 
-// API gửi email
-app.post("/send-mail", async (req, res) => {
-  const { name, email, course } = req.body;
+// Xử lý gửi email (nếu bạn có form gửi email)
+app.post("/send", async (req, res) => {
+  const { name, email, message } = req.body;
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS,
+    },
+  });
+
   try {
     await transporter.sendMail({
-      from: `"TA Edu" <${process.env.GMAIL_USER}>`,
-      to: email,
-      subject: "Xác nhận đăng ký khóa học",
-      html: `<p>Xin chào ${name},</p>
-             <p>Bạn đã đăng ký thành công khóa học <b>${course}</b>.</p>
-             <p>Hẹn gặp lại tại TA Edu!</p>`,
+      from: process.env.GMAIL_USER,
+      to: process.env.GMAIL_USER,
+      subject: `Tin nhắn từ ${name}`,
+      text: `Email: ${email}\n\nNội dung:\n${message}`,
     });
-
-    console.log("✅ Email sent to:", email);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("❌ Error sending email:", err);
-    res.json({ success: false, error: err });
+    res.status(200).send("Đã gửi email thành công!");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Gửi email thất bại!");
   }
 });
 
-// Start server local
-app.listen(PORT, () => console.log(`🚀 Server chạy tại http://localhost:${PORT}`));
+// Khởi động server (chỉ dùng khi chạy cục bộ)
+app.listen(PORT, () => console.log(`Server đang chạy trên cổng ${PORT}`));
